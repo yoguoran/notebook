@@ -1,10 +1,20 @@
 import axios from 'axios'
 
 // 从环境变量或配置中获取GitHub相关配置
-const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN || process.env.GITHUB_TOKEN
-const GITHUB_OWNER = import.meta.env.VITE_GITHUB_OWNER || process.env.GITHUB_OWNER
-const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || process.env.GITHUB_REPO
-const GITHUB_NOTES_DIR = import.meta.env.VITE_GITHUB_NOTES_DIR || 'notes/'
+export const GITHUB_TOKEN = import.meta.env.VITE_GITHUB_TOKEN || process.env.GITHUB_TOKEN
+export const GITHUB_OWNER = import.meta.env.VITE_GITHUB_OWNER || process.env.GITHUB_OWNER
+export const GITHUB_REPO = import.meta.env.VITE_GITHUB_REPO || process.env.GITHUB_REPO
+export const GITHUB_NOTES_DIR = import.meta.env.VITE_GITHUB_NOTES_DIR || 'notes/'
+export const GITHUB_BRANCH = import.meta.env.VITE_GITHUB_BRANCH || 'main'
+
+// 获取配置信息
+export const getConfig = () => ({
+  GITHUB_TOKEN,
+  GITHUB_OWNER,
+  GITHUB_REPO,
+  GITHUB_NOTES_DIR,
+  GITHUB_BRANCH
+});
 
 // 创建axios实例
 const githubApi = axios.create({
@@ -48,8 +58,8 @@ export const getFileContent = async (filePath) => {
   try {
     // 确保文件路径以笔记目录开头
     const fullPath = filePath.startsWith(GITHUB_NOTES_DIR) ? filePath : `${GITHUB_NOTES_DIR}${filePath}`
-    
-    const response = await githubApi.get(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${fullPath}`)
+   // 发送请求获取文件内容，指定分支
+    const response = await githubApi.get(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${fullPath}?ref=${GITHUB_BRANCH}`)
     
     // GitHub API返回的是base64编码的内容，需要解码
     if (response.data.content) {
@@ -79,7 +89,7 @@ export const updateFileContent = async (filePath, content, message = 'Update not
     
     try {
       // 尝试获取文件的当前SHA值（如果文件已存在）
-      const existingFile = await githubApi.get(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${fullPath}`)
+        const existingFile = await githubApi.get(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${fullPath}?ref=${GITHUB_BRANCH}`)
       sha = existingFile.data.sha
     } catch (err) {
       // 如果文件不存在，sha保持为null
@@ -94,7 +104,8 @@ export const updateFileContent = async (filePath, content, message = 'Update not
     const response = await githubApi.put(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${fullPath}`, {
       message: message,
       content: encodedContent,
-      sha: sha // 如果文件存在，需要提供sha值
+      sha: sha, // 如果文件存在，需要提供sha值
+      branch: GITHUB_BRANCH // 指定分支
     })
     
     return response.data
@@ -110,7 +121,7 @@ export const updateFileContent = async (filePath, content, message = 'Update not
  */
 export const listNotesFromGitHub = async () => {
   try {
-    const response = await githubApi.get(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_NOTES_DIR}`)
+    const response = await githubApi.get(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${GITHUB_NOTES_DIR}?ref=${GITHUB_BRANCH}`)
     
     // 过滤出文本文件并返回必要信息
     return response.data
@@ -143,13 +154,14 @@ export const deleteNoteFromGitHub = async (filePath, message = 'Delete note') =>
     const fullPath = filePath.startsWith(GITHUB_NOTES_DIR) ? filePath : `${GITHUB_NOTES_DIR}${filePath}`
     
     // 首先获取文件的SHA值
-    const existingFile = await githubApi.get(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${fullPath}`)
+    const existingFile = await githubApi.get(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${fullPath}?ref=${GITHUB_BRANCH}`)
     const sha = existingFile.data.sha
     
     const response = await githubApi.delete(`/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${fullPath}`, {
       data: {
         message: message,
-        sha: sha
+        sha: sha,
+        branch: GITHUB_BRANCH // 指定分支
       }
     })
     

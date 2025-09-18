@@ -5,6 +5,9 @@
       <h1>记事本</h1>
       <div class="connection-status" :class="{ connected: isConnected, disconnected: !isConnected }">
         <span>{{ connectionStatusText }}</span>
+        <button v-if="!isConnected" class="reconnect-button" @click="verifyConnection">
+          重新连接
+        </button>
       </div>
     </header>
     
@@ -69,8 +72,42 @@ export default {
       }, 3000)
     }
     
+    // 检查环境变量配置
+    const checkEnvConfig = () => {
+      const { GITHUB_TOKEN, GITHUB_OWNER, GITHUB_REPO, GITHUB_BRANCH } = githubService.getConfig();
+      
+      if (!GITHUB_TOKEN) {
+        showMessage('未配置GitHub令牌，请检查.env文件中的VITE_GITHUB_TOKEN配置', 'error');
+        return false;
+      }
+      if (!GITHUB_OWNER) {
+        showMessage('未配置GitHub所有者，请检查.env文件中的VITE_GITHUB_OWNER配置', 'error');
+        return false;
+      }
+      if (!GITHUB_REPO) {
+        showMessage('未配置GitHub仓库，请检查.env文件中的VITE_GITHUB_REPO配置', 'error');
+        return false;
+      }
+      
+      // 显示当前配置信息（用于调试）
+      console.log('GitHub配置:', {
+        GITHUB_TOKEN: GITHUB_TOKEN ? '已配置' : '未配置',
+        GITHUB_OWNER,
+        GITHUB_REPO,
+        GITHUB_BRANCH
+      });
+      
+      return true;
+    }
+    
     // 验证GitHub连接
     const verifyConnection = async () => {
+      if (!checkEnvConfig()) {
+        isConnected.value = false;
+        connectionStatusText.value = '配置错误';
+        return;
+      }
+      
       try {
         const status = await githubService.verifyGitHubConnection()
         isConnected.value = status
@@ -79,7 +116,18 @@ export default {
       } catch (error) {
         isConnected.value = false
         connectionStatusText.value = '连接错误'
-        showMessage('GitHub连接验证失败：' + error.message, 'error')
+        
+        // 提供更详细的错误信息
+        let errorMsg = 'GitHub连接验证失败';
+        if (error.response && error.response.status === 404) {
+          errorMsg += '：找不到指定的仓库或文件路径。请检查VITE_GITHUB_OWNER和VITE_GITHUB_REPO配置是否正确。';
+        } else if (error.response && error.response.status === 401) {
+          errorMsg += '：认证失败。请检查VITE_GITHUB_TOKEN是否有效且具有足够的权限。';
+        } else {
+          errorMsg += '：' + error.message;
+        }
+        
+        showMessage(errorMsg, 'error')
       }
     }
     
@@ -250,6 +298,23 @@ export default {
   padding: 5px 10px;
   border-radius: 10px;
   font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.reconnect-button {
+  background-color: #1890ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.reconnect-button:hover {
+  background-color: #40a9ff;
 }
 
 .connection-status.connected {
