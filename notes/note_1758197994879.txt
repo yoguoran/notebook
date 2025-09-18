@@ -1,20 +1,17 @@
-listen_port=65080; 
-worker_proc=0; 
-daemon=on; 
-uid=3004; 
-
-http_ip=; 
-http_port=443; 
-http_del="Host"; 
-http_first="[M] http://[H][U] [V]\r\n"; 
-
-
-https_connect=on; 
-https_ip=cloudnproxy.baidu.com; 
-https_port=443; 
-https_del="Host"; 
-https_first="[M] [H]@tjtn.pan.wo.cn [V]\r\n"; 
-
-dns_tcp=http; 
-dns_listen_port=65053; 
-dns_url="119.29.29.29";
+listen_port=65080;
+worker_proc=0;
+daemon=on;
+uid=3004;
+mode=net;
+http_ip=192.168.88.88;
+http_port=443;
+http_del="Host,X-Online-Host";
+http_first="[M] [U] [V]\r\nHost:tjtn.pan.wo.cn\r\nHost:tjtn.pan.wo.cn[H]\r\n";
+https_connect=on;
+https_ip=180.101.50.208;
+https_port=443;
+https_del="User-Agent";
+https_first="[M] [H]@tjtn.pan.wo.cn [V]\r\n";
+dns_tcp=http;
+dns_listen_port=65053;
+dns_url="180.184.1.1";
