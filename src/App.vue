@@ -1,14 +1,7 @@
 <template>
   <div class="notebook-container">
     <header class="header">
-      <button class="back-button" @click="goBack"><</button>
       <h1>记事本</h1>
-      <div class="connection-status" :class="{ connected: isConnected, disconnected: !isConnected }">
-        <span>{{ connectionStatusText }}</span>
-        <button v-if="!isConnected" class="reconnect-button" @click="verifyConnection">
-          重新连接
-        </button>
-      </div>
     </header>
     
     <main class="content">
@@ -19,7 +12,7 @@
         @input="onNoteInput"
       ></textarea>
       
-      <button class="save-button" @click="saveNote">保存</button>
+
       
       <section class="history-section">
         <h2>历史记录</h2>
@@ -38,7 +31,7 @@
       </section>
       
       <div class="action-buttons">
-        <button class="upload-button" @click="uploadToGitHub">上传</button>
+        <button class="upload-button" @click="saveNote">保存</button>
         <button class="download-button" @click="downloadFromGitHub">下载</button>
       </div>
     </main>
