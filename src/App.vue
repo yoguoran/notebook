@@ -425,7 +425,7 @@ export default {
   margin-bottom: 15px;
   box-sizing: border-box;
 }
-/* 密码弹窗样式 */
+
 .password-modal {
   position: fixed;
   top: 0;
