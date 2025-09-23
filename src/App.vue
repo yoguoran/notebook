@@ -77,6 +77,10 @@ export default {
     const connectionStatusText = ref('未连接')
     const message = ref('')
     const messageType = ref('success')
+      // 密码验证相关状态
+    const passwordVerified = ref(false)
+    const showPasswordPrompt = ref(false)
+    const inputPassword = ref('')
     
     // 显示消息
     const showMessage = (text, type = 'success') => {
