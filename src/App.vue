@@ -30,9 +30,31 @@
         </div>
       </section>
       
-      <div class="action-buttons">
-        <button class="upload-button" @click="saveNote">保存</button>
-        <button class="download-button" @click="downloadFromGitHub">下载</button>
+     <div class="action-buttons">
+        <button class="upload-button" @click="saveNote">上传</button>
+        <template v-if="passwordVerified">
+          <button class="download-button" @click="downloadFromGitHub">下载</button>
+        </template>
+        <template v-else>
+          <button class="download-button" @click="showPasswordPrompt = true">输入密码</button>
+        </template>
+      </div>
+       <!-- 密码输入弹窗 -->
+      <div v-if="showPasswordPrompt" class="password-modal">
+        <div class="password-modal-content">
+          <h3>请输入密码</h3>
+          <input 
+            type="password" 
+            v-model="inputPassword" 
+            class="password-input" 
+            placeholder="输入密码"
+            @keyup.enter="verifyPassword"
+          >
+          <div class="password-modal-buttons">
+            <button @click="verifyPassword" class="confirm-button">确认</button>
+            <button @click="showPasswordPrompt = false" class="cancel-button">取消</button>
+          </div>
+        </div>
       </div>
     </main>
     
@@ -203,10 +225,14 @@ export default {
       }
     }
     
-    // 返回按钮处理
-    const goBack = () => {
-      // 这里可以实现返回上一页的逻辑
-      showMessage('返回上一页')
+     // 验证密码
+    const verifyPassword = () => {
+      // 这里使用简单的密码验证，实际应用中可以根据需求修改
+      if (inputPassword.value === 'guoran') {
+        passwordVerified.value = true
+        showPasswordPrompt.value = false
+        inputPassword.value = ''
+      }
     }
     
     // 笔记输入处理
@@ -295,6 +321,9 @@ export default {
       connectionStatusText,
       message,
       messageType,
+      passwordVerified,
+      showPasswordPrompt,
+      inputPassword,
       saveNote,
       loadNoteFromHistory,
       deleteNoteFromHistory,
@@ -302,7 +331,8 @@ export default {
       downloadFromGitHub,
       goBack,
       onNoteInput,
-      copyNoteContent
+      copyNoteContent,
+      verifyPassword
     }
   }
 }
@@ -386,7 +416,19 @@ export default {
   margin-bottom: 15px;
   box-sizing: border-box;
 }
-
+/* 密码弹窗样式 */
+.password-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
 .save-button {
   width: 100%;
   padding: 10px;
