@@ -228,6 +228,11 @@ export default {
         showMessage('下载失败：' + error.message, 'error')
       }
     }
+       // 返回按钮处理
+    const goBack = () => {
+      // 这里可以实现返回上一页的逻辑
+      showMessage('返回上一页')
+    }
     
      // 验证密码
     const verifyPassword = () => {
