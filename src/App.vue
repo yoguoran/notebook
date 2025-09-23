@@ -12,7 +12,7 @@
         @input="onNoteInput"
       ></textarea>
       
-
+      <button class="save-button" @click="copyNoteContent">复制</button>
       
       <section class="history-section">
         <h2>历史记录</h2>
@@ -213,7 +213,61 @@ export default {
     const onNoteInput = () => {
       // 可以在这里实现自动保存等功能
     }
-    
+     // 复制笔记内容（富文本格式）
+    const copyNoteContent = async () => {
+      if (!noteContent.value.trim()) {
+        showMessage('没有可复制的内容', 'error')
+        return
+      }
+      
+      try {
+        // 创建临时div元素用于复制富文本
+        const tempDiv = document.createElement('div')
+        
+        // 设置内容和样式
+        tempDiv.innerHTML = noteContent.value
+        tempDiv.style.fontFamily = 'inherit'
+        tempDiv.style.fontSize = 'inherit'
+        
+        // 隐藏临时元素
+        tempDiv.style.position = 'absolute'
+        tempDiv.style.left = '-9999px'
+        tempDiv.style.top = '-9999px'
+        
+        // 添加到文档
+        document.body.appendChild(tempDiv)
+        
+        // 创建选择范围
+        const range = document.createRange()
+        range.selectNode(tempDiv)
+        
+        // 选择内容
+        const selection = window.getSelection()
+        selection.removeAllRanges()
+        selection.addRange(range)
+        
+        // 复制到剪贴板
+        const success = document.execCommand('copy')
+        
+        // 清理
+        selection.removeAllRanges()
+        document.body.removeChild(tempDiv)
+        
+        if (success) {
+          showMessage('内容已成功复制到剪贴板')
+        } else {
+          // 备用方案：使用现代的clipboard API
+          if (navigator.clipboard && window.isSecureContext) {
+            await navigator.clipboard.writeText(noteContent.value)
+            showMessage('内容已成功复制到剪贴板')
+          } else {
+            throw new Error('复制失败')
+          }
+        }
+      } catch (error) {
+        showMessage('复制失败：' + error.message, 'error')
+      }
+    }
     // 组件挂载时执行的操作
     onMounted(() => {
       verifyConnection()
@@ -247,7 +301,8 @@ export default {
       uploadToGitHub,
       downloadFromGitHub,
       goBack,
-      onNoteInput
+      onNoteInput,
+      copyNoteContent
     }
   }
 }
